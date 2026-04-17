@@ -1,7 +1,7 @@
 from pydantic import BaseModel
 from typing import Optional, List
 
-class ConverstionResult(BaseModel):
+class ConversionResult(BaseModel):
     """API response model for conversion result"""
     conversion_id: str
     success: bool
