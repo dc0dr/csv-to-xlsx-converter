@@ -21,7 +21,7 @@ class CSVToXLSXConverter:
     """Handles conversion of CSV files to XLSX format."""
 
     def __init__(self):
-        self.common_delimiters = [',', ';', '\t', '|', ':', '\s+', ' ']
+        self.common_delimiters = [',', ';', '\t', '|', ':', '\\s+', ' ']
     
     def detect_delimiter(self, file_path: str, sample_size: int = 1024) -> str:
         """
