@@ -156,7 +156,7 @@ async def convert_csv_with_options(
     try:
         # Handle delimiter representations
         if delimiter:
-            delimiter = delimiter.replace("\\t", "\t").replace("\\n", "\n").replace("\\r", "\r").replace("\\s", "\s")
+            delimiter = delimiter.replace("\\t", "\t").replace("\\n", "\n").replace("\\r", "\r")
 
         # Create temporary directory
         temp_dir = tempfile.mkdtemp()
