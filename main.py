@@ -58,11 +58,11 @@ async def convert_csv(
     """
     Convert a CSV file to XLSX format with automatic delimiter detection.
 
-    Args:
-        file: CSV file to upload and convert
+    Args:\n
+        file: CSV file to upload and convert\n
 
-    Returns:
-        ConversionResult with conversion details and download URL
+    Returns:\n
+        ConversionResult with conversion details and download URL\n
     """
     if not file.filename.endswith(('.csv', '.txt', '.tsv')):
         raise HTTPException(
@@ -133,13 +133,13 @@ async def convert_csv_with_options(
     """
     Convert a CSV file to XLSX format with custom options.
 
-    Args:
-        file: CSV file to upload and convert
-        delimiter: Custom delimiter (auto-detected if None)
-        encoding: File encoding
-        sheet_name: Excel sheet name
+    Args:\n
+        file: CSV file to upload and convert\n  
+        delimiter: Custom delimiter (auto-detected if None)\n
+        encoding: File encoding\n
+        sheet_name: Excel sheet name\n
 
-    Returns:
+    Returns:\n
         ConversionResult with conversion details and download URL
     """
 
@@ -218,4 +218,4 @@ async def convert_csv_with_options(
 
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=8000)
+    uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=True)
