@@ -123,6 +123,98 @@ async def convert_csv(
         logger.error(f"Conversion {conversion_id} failed: {str(e)}")
         raise HTTPException(status_code=500, detail=f"Conversion failed: {str(e)}")
 
+@app.post("/convert_with_options", response_model=ConversionResult)
+async def convert_csv_with_options(
+    file: UploadFile = File(..., description="CSV file to convert"),
+    delimiter: Optional[str] = Form(None, description="Custom delimiter (auto-detected if None)"),
+    encoding: str = Form("utf-8", description="File encoding"),
+    sheet_name: str = Form("Main Sheet", description="Excel sheet name")
+):
+    """
+    Convert a CSV file to XLSX format with custom options.
+
+    Args:
+        file: CSV file to upload and convert
+        delimiter: Custom delimiter (auto-detected if None)
+        encoding: File encoding
+        sheet_name: Excel sheet name
+
+    Returns:
+        ConversionResult with conversion details and download URL
+    """
+
+    if not file.filename.endswith(('.csv', '.txt', '.tsv')):
+        raise HTTPException(
+            status_code=400,
+            detail="File must be a CSV, TSV, or TXT file"
+        )
+    
+    # Generate unique conversion ID
+    conversion_id = str(uuid.uuid4())
+    temp_dir = None
+
+    try:
+        # Handle delimiter representations
+        if delimiter:
+            delimiter = delimiter.replace("\\t", "\t").replace("\\n", "\n").replace("\\r", "\r").replace("\\s", "\s")
+
+        # Create temporary directory
+        temp_dir = tempfile.mkdtemp()
+        input_path = os.path.join(temp_dir, f"input_{conversion_id}.csv")
+        output_path = os.path.join(temp_dir, f"output_{conversion_id}.xlsx")
+
+        # Save uploaded file to temp directory
+        with open(input_path, "wb") as buffer:
+            shutil.copyfileobj(file.file, buffer)
+
+        logger.info(f"Processing conversion {conversion_id} with custom options")
+
+        # Perform conversion
+        result: ConversionResult = converter.convert_csv_to_xlsx(
+            input_file=input_path,
+            output_file=output_path,
+            delimiter=delimiter,
+            encoding=encoding,
+            sheet_name=sheet_name
+        )
+
+        if result.success:
+            # Store conversion info
+            conversions[conversion_id] = {
+                "status": "completed",
+                "output_path": output_path,
+                "temp_dir": temp_dir,
+                "result": result
+            }
+
+            return ConversionResult(
+                conversion_id=conversion_id,
+                success=True,
+                message=f"Successfully converted {result.rows_processed} rows and {result.columns_processed} columns.",
+                rows_processed=result.rows_processed,
+                columns_processed=result.columns_processed,
+                detected_delimiter=result.detected_delimiter,
+                column_names=result.column_names,
+                download_url=f"/download/{conversion_id}"
+            )
+        else:
+            # Clean up on failure
+            if temp_dir:
+                shutil.rmtree(temp_dir, ignore_errors=True)
+            raise HTTPException(status_code=400, detail=result.error_message)
+
+    except Exception as e:
+        # Clean up on exception
+        if temp_dir:
+            shutil.rmtree(temp_dir, ignore_errors=True)
+
+        logger.error(f"Conversion {conversion_id} failed: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Conversion failed: {str(e)}")
+
+        
+
+
+
 
 if __name__ == "__main__":
     import uvicorn
