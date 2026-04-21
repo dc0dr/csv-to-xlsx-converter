@@ -211,7 +211,23 @@ async def convert_csv_with_options(
         logger.error(f"Conversion {conversion_id} failed: {str(e)}")
         raise HTTPException(status_code=500, detail=f"Conversion failed: {str(e)}")
 
-        
+@app.get("/status/{conversion_id}", response_model=ConversionResult)
+async def get_conversion_status(conversion_id: str):
+    """Get the status of a conversion task."""
+    if conversion_id not in conversions:
+        raise HTTPException(status_code=404, detail="Conversion not found")
+    
+    conversion = conversions[conversion_id]
+    result = conversion.get("result")
+
+    return ConversionStatus(
+        conversion_id = conversion_id,
+        status=conversion["status"],
+        success=result.success if result else False,
+        message=result.error_message if result and not result.success else "Conversion completed successfully",
+        rows_processed=result.rows_processed if result else 0,
+        columns_processed=result.columns_processed if result else 0
+    )
 
 
 
