@@ -229,6 +229,25 @@ async def get_conversion_status(conversion_id: str):
         columns_processed=result.columns_processed if result else 0
     )
 
+app.get("/download/{conversion_id}")
+async def download_file(conversion_id: str):
+    """Download the converted XLSX file."""
+    if conversion_id not in conversions:
+        raise HTTPException(status_code=404, detail="Conversion not found")
+    
+    conversion = conversions[conversion_id]
+    if conversion["status"] != "completed":
+        raise HTTPException(status_code=400, detail="Conversion not completed")
+    
+    output_path = conversion["output_path"]
+    if not os.path.exists(output_path):
+        raise HTTPException(status_code=404, detail="File not found")
+
+    return FileResponse(
+        output_path,
+        media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        filename=f"converted_{conversion_id}.xlsx"
+    )
 
 
 
